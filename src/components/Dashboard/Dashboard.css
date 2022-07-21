@@ -1,0 +1,32 @@
+.dashboard {
+    padding: 30px 60px;
+}
+
+.section {
+    width: 800px;
+    height: 180px;
+    border-radius: 20px;
+    border: solid 1px gray;
+    margin: 20px 0;
+}
+
+.section-title {
+    font-size: 30px;
+    font-style: italic;
+    text-align: center;
+}
+
+.section-details {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.icon {
+    margin: 0 30px;    
+}
+
+.value {
+    margin: 0 30px;
+    font-size: 30px;
+}

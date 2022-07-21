@@ -1,0 +1,66 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;   
+}
+
+.good-card {
+  border-radius: 10px;
+  height: 550px;
+  width: 400px;  
+  margin: 10px;
+  background-color: rgba(128, 128, 128, 0.46);
+}
+
+
+.good-image img {
+  width: 100%;
+  height: 300px;
+  border-radius: 10px;
+}
+
+.good-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.good-details-d {
+  display: flex;
+  justify-content: space-between;
+  margin: 15px 30px;
+}
+
+.price {
+  font-size: 30px;
+}
+
+.good-details-s {
+  text-align: center;
+  margin: 10px 0;
+  font-size: 17px;
+  font-style: italic;
+  font-weight: 600;
+}
+
+.buy-button {
+  font-size: 25px;
+  font-weight: 600;
+  color: white;
+  background-color: green;
+  width: 80%;
+  height: 55px;
+  border-radius: 10px;
+  text-align: center;
+  margin: auto;
+  cursor: pointer;
+}
+
+.good-name, .good-description {  
+  text-align: center;
+}
+
+.good-name {
+  font-size: 20px;
+  font-weight: 500;
+}
+
