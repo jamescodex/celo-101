@@ -1,5 +1,6 @@
 import React from "react";
 import "./Create.css";
+import Button from 'react-bootstrap/Button';
 
 const Create = ({ createGood }) => {
   const [name, setName] = React.useState();
@@ -31,12 +32,14 @@ const Create = ({ createGood }) => {
           placeholder="Enter goods price"
           onChange={(e) => setPrice(e.target.value)}
         />
-        <div
-          className="create-button"
-          onClick={() => createGood(name, image, description, price)}
-        >
-          Create
+        <div>
+          <Button variant="success"
+            onClick={() => createGood(name, image, description, price)}
+          >
+            Create
+          </Button>       
         </div>
+         
       </div>
     </div>
   );
