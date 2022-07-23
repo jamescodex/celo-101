@@ -21,7 +21,7 @@ contract Gainers {
 
     address[] internal buyersRecord;
     mapping(uint256 => mapping(address => bool)) internal buyers;
-    mapping (uint256 => Good) internal goods;
+    mapping (uint256 => Good) public goods;
     mapping (address => uint256) internal purchaseCount;
     mapping (address => uint256) internal purchaseAmount;    
 
@@ -56,26 +56,6 @@ contract Gainers {
         );
 
         counter++;
-    }
-
-    // get good at _index
-    function checkGood(uint256 _index) public view returns (
-        uint256 id,
-        address payable owner,
-        string memory name,
-        string memory description,
-        string memory image,
-        uint256 price,
-        uint256 salesCount
-    ) {
-        Good storage good = goods[_index];
-        id = good.id;
-        owner = good.owner;
-        name = good.name;
-        description = good.description;
-        image = good.image;
-        price = good.price;
-        salesCount = good.salesCount;
     }
 
     // update buyers record
