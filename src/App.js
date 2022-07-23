@@ -5,7 +5,7 @@ import Navigation from "./components/Navigation/Navigation";
 import Home from "./components/Home/Home";
 import Create from "./components/Create/Create";
 import Dashboard from "./components/Dashboard/Dashboard";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { HashRouter  as Router, Routes, Route } from "react-router-dom";
 import BigNumber from "bignumber.js";
 
 import gainerAbi from "./contracts/gainer.abi.json";
