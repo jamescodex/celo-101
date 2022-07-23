@@ -1,75 +1,99 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >= 0.8.0;
+pragma solidity >=0.8.0;
 
 interface IERC20Token {
-  function transfer(address, uint256) external returns (bool);
-  function approve(address, uint256) external returns (bool);
-  function transferFrom(address, address, uint256) external returns (bool);
-  function totalSupply() external view returns (uint256);
-  function balanceOf(address) external view returns (uint256);
-  function allowance(address, address) external view returns (uint256);
+    function transfer(address, uint256) external returns (bool);
 
-  event Transfer(address indexed from, address indexed to, uint256 value);
-  event Approval(address indexed owner, address indexed spender, uint256 value);
+    function approve(address, uint256) external returns (bool);
+
+    function transferFrom(
+        address,
+        address,
+        uint256
+    ) external returns (bool);
+
+    function totalSupply() external view returns (uint256);
+
+    function balanceOf(address) external view returns (uint256);
+
+    function allowance(address, address) external view returns (uint256);
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 value
+    );
 }
 
-contract Gainers {  
+contract Gainers {
+    uint256 private counter;
+    address private cUsdTokenAddress =
+        0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
 
-    uint256 counter;   
-    address cUsdTokenAddress = 0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
-
-    address[] internal buyersRecord;
-    mapping(uint256 => mapping(address => bool)) internal buyers;
-    mapping (uint256 => Good) internal goods;
-    mapping (address => uint256) internal purchaseCount;
-    mapping (address => uint256) internal purchaseAmount;    
+    address[] private buyersRecord;
+    mapping(address => bool) private isBuyer;
+    mapping(uint256 => mapping(address => bool)) private buyers;
+    mapping(uint256 => Good) private goods;
+    mapping(address => uint256) private purchaseCount;
+    mapping(address => uint256) private purchaseAmount;
+    mapping(uint => bool) private exists;
 
     struct Good {
-        uint256 id;
         address payable owner;
         string name;
         string description;
         string image;
-        uint256 price; 
-        uint256 salesCount;       
+        uint256 price;
+        uint256 salesCount;
     }
 
-    // create new good
+    modifier exist(uint _index) {
+        require(exists[_index], "Query of non existent good");
+        _;
+    }
+
+    /// @dev create new good
     function createGood(
-        string memory _name,
-        string memory _description,
-        string memory _image,
+        string calldata _name,
+        string calldata _description,
+        string calldata _image,
         uint256 _price
     ) public {
-
+        require(_price > 0, "Price needs to be at least one wei");
+        require(bytes(_name).length > 0, "Empty name");
+        require(bytes(_description).length > 0, "Empty description");
+        require(bytes(_image).length > 0, "Empty image url");
         uint256 salesCount = 0;
-
+        exists[counter] = true;
         goods[counter] = Good(
-            counter,
             payable(msg.sender),
             _name,
             _description,
             _image,
             _price,
-            salesCount        
+            salesCount
         );
 
         counter++;
     }
 
-    // get good at _index
-    function checkGood(uint256 _index) public view returns (
-        uint256 id,
-        address payable owner,
-        string memory name,
-        string memory description,
-        string memory image,
-        uint256 price,
-        uint256 salesCount
-    ) {
-        Good storage good = goods[_index];
-        id = good.id;
+    /// @dev get good with id of _index
+    function checkGood(uint256 _index)
+        public
+        view
+        exist(_index)
+        returns (
+            address payable owner,
+            string memory name,
+            string memory description,
+            string memory image,
+            uint256 price,
+            uint256 salesCount
+        )
+    {
+        Good memory good = goods[_index];
         owner = good.owner;
         name = good.name;
         description = good.description;
@@ -78,21 +102,12 @@ contract Gainers {
         salesCount = good.salesCount;
     }
 
-    // update buyers record
-    function updateBuyersRecord(address _buyer) private {
-        bool added = false;
-        for (uint256 i = 0; i < buyersRecord.length; i++) {
-            if (buyersRecord[i] == _buyer) {
-                added = true;
-            }
-        }
-        if (!added) {
-            buyersRecord.push(_buyer);
-        }
-    }
-
-    // buy good from market
-    function buyGood(uint256 _index) public payable {
+    /// @dev buy a good from the marketplace
+    function buyGood(uint256 _index) external payable exist(_index) {
+        require(
+            goods[_index].owner != msg.sender,
+            "owner can't buy his own good"
+        );
         Good storage good = goods[_index];
         require(
             IERC20Token(cUsdTokenAddress).transferFrom(
@@ -102,34 +117,31 @@ contract Gainers {
             ),
             "Sending funds failed"
         );
-
-        updateBuyersRecord(msg.sender);
+        if (isBuyer[msg.sender] == false) {
+            isBuyer[msg.sender] = true;
+            buyersRecord.push(msg.sender);
+        }
         good.salesCount++;
         buyers[_index][msg.sender] = true;
         purchaseCount[msg.sender]++;
         purchaseAmount[msg.sender] += good.price;
     }
 
-    // get top spender
-    function getTopSpender() public view returns (address) {
+    /// @dev gets top spender
+    function getTopSpender() public view returns (address, uint) {
         address topSpender = address(0);
         uint256 highest = 0;
-        for (uint256 i = 0; i < buyersRecord.length; i++)  {
+        for (uint256 i = 0; i < buyersRecord.length; i++) {
             if (purchaseAmount[buyersRecord[i]] > highest) {
                 highest = purchaseAmount[buyersRecord[i]];
                 topSpender = buyersRecord[i];
             }
-        }   
-        return (topSpender);
+        }
+        return (topSpender, highest);
     }
 
-    //
-    function getTopSpenderNumber(address _spender) public view returns (uint256) {
-        return purchaseAmount[_spender];
-    }
-
-    // get top buyer
-    function getTopBuyer() public view returns (address) {
+    /// @dev gets top buyer
+    function getTopBuyer() public view returns (address, uint) {
         address topBuyer = address(0);
         uint256 highest = 0;
         for (uint256 i = 0; i < buyersRecord.length; i++) {
@@ -138,18 +150,17 @@ contract Gainers {
                 topBuyer = buyersRecord[i];
             }
         }
-        return topBuyer;
+        return (topBuyer, highest);
     }
 
-    // 
-    function getTopBuyerNumber(address _buyer) public view returns (uint256) {
-        return purchaseCount[_buyer];
+    /// @dev returns the purchaseCount and purchaseAmount of address user
+    function getPurchaseDetails(address user) public view returns (uint, uint) {
+        require(user != address(0), "Invalid address");
+        return (purchaseAmount[user], purchaseCount[user]);
     }
 
-    //
+    /// @dev returns the number of Goods listed
     function getCounter() public view returns (uint256) {
         return counter;
     }
-
-
 }
